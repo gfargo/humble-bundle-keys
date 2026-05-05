@@ -5,6 +5,19 @@ All notable changes to `humble-bundle-keys` will be documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Validated
+
+- 0.4.0 exercised end-to-end against a large multi-year account (200+ orders): default API reveal path returned a CSV in a single pass with a >99% success rate, and the silent-no-key categorizer correctly bucketed every non-Steam-shaped entry (softwarebundle / voucher / keyless / freegame / monthly).
+
+### Known issues (filed against this release)
+
+- Transient Cloudflare 403s on a single reveal POST (~0.5% rate observed). Tracked as a bug — fix is retry-with-backoff in `_browser_fetch`.
+- Cache hit/miss summary line prints counts that don't sum to the order count. Cosmetic, fix planned.
+- `softwarebundle`, `voucher`, `keyless`, and `freegame` keytypes still trigger a wasted reveal POST before being categorized. Tracked as an enhancement to pre-skip them.
+- Choice re-run hint should print a copy-pasteable `--claim-choice --membership-only <slug>` invocation.
+
 ## [0.4.0] — Public release
 
 ### Changed

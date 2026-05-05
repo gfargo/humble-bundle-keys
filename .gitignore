@@ -89,6 +89,14 @@ debug/
 trace-*.zip
 trace.zip
 
+# Internal design docs — content is captured in .kiro/steering/ instead.
+# These contain reverse-engineered API contracts and architecture notes
+# that are useful locally but shouldn't be in the repo.
+docs/
+
+# Kiro editor
+.kiro
+
 # Dev-time downloaded captures (any .png at the repo root is suspect)
 /Screenshot*.png
 

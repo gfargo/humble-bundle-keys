@@ -184,6 +184,8 @@ See [`docs/WHATS_CLAIMABLE.md`](docs/WHATS_CLAIMABLE.md) for more detail.
 
 Check the summary's first 5 errors. If they show `<!DOCTYPE html>... no-js ie6 oldie`, that's Cloudflare blocking the request. Re-run with `--no-headless` (since 0.2.5 this is automatic when state will mutate; use `--no-headless` explicitly if you've overridden somewhere).
 
+A handful of one-off 403s on a large account (e.g. 1 out of ~200 orders) is normal — Humble's WAF occasionally flags individual fetches, and a re-run usually clears them. Worry only if the rate is ≥1% of orders or if the same game fails on every run.
+
 ### "Auth error: /home/keys is still redirecting to login"
 
 Sometimes Humble inserts a region/age-gate page after login. Open `https://www.humblebundle.com/home/keys` in your normal browser, click through whatever it shows, then `humble-bundle-keys logout && humble-bundle-keys`.
