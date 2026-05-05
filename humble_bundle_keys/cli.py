@@ -186,9 +186,9 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--max-claims",
         type=int,
-        default=25,
-        help="Hard cap on Choice claims per run (when --claim-choice is set). "
-        "Default: 25.",
+        default=100,
+        help="Hard cap on Choice claims per run (when --claim-choice or "
+        "--browser-claim is set). Default: 100.",
     )
     p.add_argument(
         "--claim-delay-s",
@@ -808,6 +808,7 @@ def _run_browser_claim(context, orders, args) -> list:
         for a in result.attempts
         if not a.success and not a.already_claimed and "dry-run" not in (a.error or "")
     )
+    n_exhausted = sum(1 for a in result.attempts if a.key_exhausted)
     if args.dry_run:
         console.print(
             f"[green]Browser claim complete (dry-run):[/] "
@@ -816,11 +817,16 @@ def _run_browser_claim(context, orders, args) -> list:
             f"No state was changed."
         )
     else:
+        parts = [f"{n_success} keys revealed"]
+        if n_already:
+            parts.append(f"{n_already} already-claimed")
+        if n_exhausted:
+            parts.append(f"{n_exhausted} keys exhausted (no stock)")
+        fail_minus_exhausted = n_real_fail - n_exhausted
+        if fail_minus_exhausted > 0:
+            parts.append(f"{fail_minus_exhausted} failures")
         console.print(
-            f"[green]Browser claim complete:[/] "
-            f"{n_success} keys revealed, "
-            f"{n_already} already-claimed, "
-            f"{n_real_fail} failures."
+            "[green]Browser claim complete:[/] " + ", ".join(parts) + "."
         )
     return result.revealed_keys
 
