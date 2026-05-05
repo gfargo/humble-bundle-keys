@@ -367,6 +367,9 @@ def _print_summary(stats, csv_path: Path, n_written: int) -> None:
     if silent:
         table.add_row("Reveals that returned no key", str(silent))
     table.add_row("Bundles processed", str(stats.bundles_processed))
+    skipped = getattr(stats, "skipped_structural", 0)
+    if skipped:
+        table.add_row("Pre-skipped (vendor/keyless)", str(skipped))
     table.add_row("Errors", str(len(stats.errors)))
     console.print(table)
     console.print(f"[green]CSV:[/] {csv_path.resolve()}")

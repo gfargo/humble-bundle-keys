@@ -59,4 +59,7 @@ class ExtractStats:
     # (game_title, tpk_machine_name, order_machine_name). Useful for
     # diagnosing which keytype patterns aren't being recognised.
     silent_no_response_tpks: list[tuple[str, str, str]] = field(default_factory=list)
+    # Entries pre-skipped because their keytype is structurally not
+    # auto-redeemable (softwarebundle, voucher, keyless, freegame).
+    skipped_structural: int = 0
     errors: list[str] = field(default_factory=list)

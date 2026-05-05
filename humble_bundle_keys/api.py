@@ -52,6 +52,10 @@ ORDERS_LIST_URL = "https://www.humblebundle.com/api/v1/user/order"
 ORDER_DETAIL_URL = "https://www.humblebundle.com/api/v1/order/{gamekey}?all_tpkds=true"
 REDEEM_URL = "https://www.humblebundle.com/humbler/redeemkey"
 
+# Keytype categories that are structurally not auto-redeemable via
+# /humbler/redeemkey. Pre-skipping these avoids wasted round-trips.
+_SKIP_CATEGORIES = frozenset({"softwarebundle", "voucher", "keyless", "freegame"})
+
 log = logging.getLogger(__name__)
 
 
@@ -230,6 +234,20 @@ class ApiScraper:
                         and self.options.reveal_keys
                         and not self.options.dry_run
                     ):
+                        # Pre-skip keytypes that are structurally not
+                        # auto-redeemable — saves a wasted round-trip per entry.
+                        from humble_bundle_keys.choice import categorize_keytype
+
+                        cat = categorize_keytype(tpk.get("machine_name"))
+                        if cat in _SKIP_CATEGORIES:
+                            self.stats.skipped_structural += 1
+                            log.debug(
+                                "Pre-skipped %r (%s): category %r",
+                                tpk.get("human_name"), tpk.get("machine_name"), cat,
+                            )
+                            rows.append(game)
+                            continue
+
                         revealed = self._reveal(tpk, order)
                         if revealed:
                             game.key = revealed
