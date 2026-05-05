@@ -5,6 +5,20 @@ All notable changes to `humble-bundle-keys` will be documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] — 2026-05-05
+
+### Fixed
+
+- **`_coupon` keytypes now categorized as `voucher`** instead of falling through to `other`. Entries like `dccomicsfreetrial_november2023choice_coupon` are now pre-skipped correctly. (Closes #11)
+
+### Changed
+
+- **Default `--max-claims` bumped from 25 to 100.** The old default was too conservative for users who've confirmed the tool works. 100 covers most backlogs in one pass (~20-30 min). Pass `--max-claims 200` for larger accounts.
+
+### Added
+
+- **Exhausted key pool detection in `--browser-claim`.** When Humble's key pool for a game is depleted ("no more keys available at this time"), the tool now detects this within ~1s instead of burning the full 30s timeout. Exhausted entries are reported separately in the summary and not counted as generic failures.
+
 ## [0.5.0] — 2026-05-05
 
 ### Fixed
