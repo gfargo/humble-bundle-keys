@@ -67,28 +67,33 @@ class OrderCache:
         safe = "".join(c if c.isalnum() else "_" for c in gamekey)
         return self.cache_dir / f"{safe}.json"
 
-    def get(self, gamekey: str) -> dict[str, Any] | None:
+    def get(self, gamekey: str, *, count_stats: bool = True) -> dict[str, Any] | None:
         if not self.enabled:
             return None
         path = self._path(gamekey)
         if not path.exists():
-            self._misses += 1
+            if count_stats:
+                self._misses += 1
             return None
         try:
             age = time.time() - path.stat().st_mtime
         except Exception:
-            self._misses += 1
+            if count_stats:
+                self._misses += 1
             return None
         if age > self.ttl_s:
-            self._misses += 1
+            if count_stats:
+                self._misses += 1
             return None
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
         except Exception as e:
             log.debug("Cache file %s unreadable (%s); treating as miss", path, e)
-            self._misses += 1
+            if count_stats:
+                self._misses += 1
             return None
-        self._hits += 1
+        if count_stats:
+            self._hits += 1
         return data
 
     def put(self, gamekey: str, order: dict[str, Any]) -> None:

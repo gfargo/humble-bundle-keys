@@ -285,10 +285,10 @@ class ApiScraper:
             )
         return out
 
-    def _get_order(self, gamekey: str) -> dict[str, Any]:
+    def _get_order(self, gamekey: str, *, _count_stats: bool = True) -> dict[str, Any]:
         cache = self.options.cache
         if cache is not None:
-            cached = cache.get(gamekey)
+            cached = cache.get(gamekey, count_stats=_count_stats)
             if cached is not None:
                 return cached
         body = self._get_json(ORDER_DETAIL_URL.format(gamekey=gamekey))
@@ -352,20 +352,45 @@ class ApiScraper:
         if token:
             extra_headers["CSRF-Prevention-Token"] = token
 
-        try:
-            page = self._get_anchor_page()
-            resp = post_form_in_browser(
-                page,
-                REDEEM_URL,
-                form,
-                referer="https://www.humblebundle.com/home/keys",
-                extra_headers=extra_headers,
-                timeout_ms=self.options.request_timeout_ms,
-            )
-        except Exception as e:
-            msg = f"reveal {tpk.get('human_name')!r}: {e}"
-            self.stats.errors.append(msg)
-            log.warning(msg)
+        # Retry with exponential backoff for transient Cloudflare 403s.
+        # A single 403 in an otherwise-successful run is almost always
+        # Cloudflare rate-limiting one request; a short pause + retry
+        # resolves it.
+        max_attempts = 3
+        resp = None
+        for attempt in range(max_attempts):
+            try:
+                page = self._get_anchor_page()
+                resp = post_form_in_browser(
+                    page,
+                    REDEEM_URL,
+                    form,
+                    referer="https://www.humblebundle.com/home/keys",
+                    extra_headers=extra_headers,
+                    timeout_ms=self.options.request_timeout_ms,
+                )
+            except Exception as e:
+                msg = f"reveal {tpk.get('human_name')!r}: {e}"
+                if attempt < max_attempts - 1:
+                    log.debug("Reveal attempt %d failed (%s), retrying...", attempt + 1, e)
+                    time.sleep(2 ** attempt)
+                    continue
+                self.stats.errors.append(msg)
+                log.warning(msg)
+                return None
+
+            if resp.status == 403 and attempt < max_attempts - 1:
+                # Transient Cloudflare challenge — back off and retry.
+                delay = 2 ** attempt
+                log.info(
+                    "Reveal %r got 403 (attempt %d/%d), retrying in %ds...",
+                    tpk.get("human_name"), attempt + 1, max_attempts, delay,
+                )
+                time.sleep(delay)
+                continue
+            break
+
+        if resp is None:
             return None
 
         if resp.status >= 400:
@@ -417,7 +442,7 @@ class ApiScraper:
         # Some endpoints return success without echoing the key — fall back to
         # re-fetching the order to get the now-populated redeemed_key_val.
         try:
-            refreshed = self._get_order(str(order.get("gamekey")))
+            refreshed = self._get_order(str(order.get("gamekey")), _count_stats=False)
             for tpk2 in self._extract_tpks(refreshed):
                 tpk2_idx = tpk2.get("keyindex", tpk2.get("key_index"))
                 if tpk2.get("machine_name") == keytype and tpk2_idx == keyindex:
