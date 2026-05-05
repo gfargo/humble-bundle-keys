@@ -241,6 +241,11 @@ class ApiScraper:
                         cat = categorize_keytype(tpk.get("machine_name"))
                         if cat in _SKIP_CATEGORIES:
                             self.stats.skipped_structural += 1
+                            self.stats.skipped_structural_tpks.append((
+                                str(tpk.get("human_name") or "(unknown)"),
+                                str(tpk.get("machine_name") or "(none)"),
+                                cat,
+                            ))
                             log.debug(
                                 "Pre-skipped %r (%s): category %r",
                                 tpk.get("human_name"), tpk.get("machine_name"), cat,

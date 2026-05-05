@@ -62,4 +62,7 @@ class ExtractStats:
     # Entries pre-skipped because their keytype is structurally not
     # auto-redeemable (softwarebundle, voucher, keyless, freegame).
     skipped_structural: int = 0
+    # Per-tpk metadata for skipped entries. Each entry is
+    # (game_title, tpk_machine_name, category).
+    skipped_structural_tpks: list[tuple[str, str, str]] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)

@@ -373,6 +373,38 @@ def _print_summary(stats, csv_path: Path, n_written: int) -> None:
     table.add_row("Errors", str(len(stats.errors)))
     console.print(table)
     console.print(f"[green]CSV:[/] {csv_path.resolve()}")
+    if skipped:
+        from collections import Counter
+
+        skipped_details = getattr(stats, "skipped_structural_tpks", []) or []
+        skip_cats: Counter[str] = Counter()
+        for _title, _mn, cat in skipped_details:
+            skip_cats[cat] += 1
+        skip_advice = {
+            "softwarebundle": "Vendor-specific flow — claim manually on vendor's site",
+            "voucher": "Store credit / gift card — not a Steam-shaped key",
+            "keyless": "Epic keyless — added directly to Epic library, no key exists",
+            "freegame": (
+                "Free-game promo — uses a different endpoint; "
+                "file a feature request with the machine_name if you need these"
+            ),
+        }
+        console.print(f"\n[dim]{skipped} entries pre-skipped (not auto-redeemable):[/]")
+        for cat, n in skip_cats.most_common():
+            hint = skip_advice.get(cat, "")
+            console.print(f"  [dim]• {cat}: {n} — {hint}[/]")
+        # Show freegame entries specifically since they're potentially supportable
+        freegame_entries = [
+            (title, mn) for title, mn, cat in skipped_details if cat == "freegame"
+        ]
+        if freegame_entries:
+            console.print(
+                "\n[dim]Freegame entries (potentially supportable in a future version):[/]"
+            )
+            for title, mn in freegame_entries[:5]:
+                console.print(f"  [dim]• {title!r}  ({mn})[/]")
+            if len(freegame_entries) > 5:
+                console.print(f"  [dim]…and {len(freegame_entries) - 5} more[/]")
     if silent:
         # Categorize the silent-no-keys so users see at a glance which are
         # actually fixable vs structurally manual.
