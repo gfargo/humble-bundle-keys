@@ -97,6 +97,9 @@ docs/
 # Kiro editor
 .kiro
 
+# Marketing website (separate repo: humble-bundle-keys-www)
+.www
+
 # GitHub Wiki (checked out as a separate git repo for local editing)
 .wiki/
 
