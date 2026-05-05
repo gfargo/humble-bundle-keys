@@ -145,7 +145,7 @@ def categorize_keytype(machine_name: str | None) -> str:
     mn = machine_name.lower()
     if "_keyless" in mn:
         return "keyless"
-    if "voucher" in mn or "_giftcard" in mn:
+    if "voucher" in mn or "_giftcard" in mn or "_coupon" in mn:
         return "voucher"
     if "_softwarebundle" in mn:
         return "softwarebundle"
