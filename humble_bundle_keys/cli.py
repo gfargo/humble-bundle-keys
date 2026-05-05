@@ -331,9 +331,11 @@ def _run_scraper(
             rows, stats = api.scrape()
             cache_msg = ""
             if api_opts.cache is not None:
+                h = api_opts.cache.hits
+                m = api_opts.cache.misses
                 cache_msg = (
-                    f" [dim](cache: {api_opts.cache.hits} hit, "
-                    f"{api_opts.cache.misses} miss)[/]"
+                    f" [dim](cache: {h} served from cache, "
+                    f"{m} fetched fresh)[/]"
                 )
             console.print(
                 f"[green]API path succeeded[/] — {stats.total_rows} rows from "
