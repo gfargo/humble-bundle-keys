@@ -1,0 +1,62 @@
+[project]
+name = "humble-bundle-keys"
+version = "0.4.0"
+description = "Extract and reveal your Humble Bundle game keys to a CSV. Open-source, browser-automated, no Steam interaction."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Griffen Fargo", email = "testuser@example.com" },
+]
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Games/Entertainment",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "playwright>=1.45.0",
+    "rich>=13.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.5.0",
+]
+
+[project.scripts]
+humble-bundle-keys = "humble_bundle_keys.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/gfargo/humble-bundle-keys"
+Repository = "https://github.com/gfargo/humble-bundle-keys"
+Issues = "https://github.com/gfargo/humble-bundle-keys/issues"
+Changelog = "https://github.com/gfargo/humble-bundle-keys/blob/main/CHANGELOG.md"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["humble_bundle_keys"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+    "live: tests that need a real Humble account (skipped by default)",
+]

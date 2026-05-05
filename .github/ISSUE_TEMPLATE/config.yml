@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issue (do not file publicly)
+    url: https://github.com/gfargo/humble-bundle-keys/blob/main/SECURITY.md
+    about: Vulnerabilities should be emailed to the maintainer instead of filed as a public issue.
+  - name: How to capture a diagnose bundle
+    url: https://github.com/gfargo/humble-bundle-keys/blob/main/CONTRIBUTING.md#filing-a-selector-broken-bug
+    about: Step-by-step for the sanitized debug bundle that 90% of bug reports need.
