@@ -198,6 +198,7 @@ def test_short_id_for_hoice_typo() -> None:
         # Software bundles & vouchers
         ("mixcraft8_acoustica_megasounddesigner_softwarebundle", "softwarebundle"),
         ("bestsyntygamedevassets_syntystore10usdvoucher", "voucher"),
+        ("dccomicsfreetrial_november2023choice_coupon", "voucher"),
         # Plain bundle
         ("game_bundle_steam", "bundle"),
         # Unknown
