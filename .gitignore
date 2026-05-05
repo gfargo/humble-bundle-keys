@@ -97,6 +97,9 @@ docs/
 # Kiro editor
 .kiro
 
+# GitHub Wiki (checked out as a separate git repo for local editing)
+.wiki/
+
 # Dev-time downloaded captures (any .png at the repo root is suspect)
 /Screenshot*.png
 
