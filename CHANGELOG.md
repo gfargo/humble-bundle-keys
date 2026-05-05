@@ -5,18 +5,24 @@ All notable changes to `humble-bundle-keys` will be documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.0] — 2026-05-05
 
-### Validated
+### Fixed
 
-- 0.4.0 exercised end-to-end against a large multi-year account (200+ orders): default API reveal path returned a CSV in a single pass with a >99% success rate, and the silent-no-key categorizer correctly bucketed every non-Steam-shaped entry (softwarebundle / voucher / keyless / freegame / monthly).
+- **Transient Cloudflare 403s on reveal POSTs are now auto-retried** with exponential backoff (up to 3 attempts, 1s then 2s delays). A single 403 in a large run no longer requires a manual re-run. (Closes #1, #2)
+- **Cache hit/miss summary no longer inflates counters.** Internal re-fetches (e.g. the reveal fallback path after cache invalidation) no longer increment user-visible counters. Labels renamed from "hit/miss" to "served from cache/fetched fresh" for clarity. The invariant `served_from_cache + fetched_fresh == orders_walked` now holds. (Closes #3)
 
-### Known issues (filed against this release)
+### Added
 
-- Transient Cloudflare 403s on a single reveal POST (~0.5% rate observed). Tracked as a bug — fix is retry-with-backoff in `_browser_fetch`.
-- Cache hit/miss summary line prints counts that don't sum to the order count. Cosmetic, fix planned.
-- `softwarebundle`, `voucher`, `keyless`, and `freegame` keytypes still trigger a wasted reveal POST before being categorized. Tracked as an enhancement to pre-skip them.
-- Choice re-run hint should print a copy-pasteable `--claim-choice --membership-only <slug>` invocation.
+- **Pre-skip for structural keytypes.** Entries categorized as `softwarebundle`, `voucher`, `keyless`, or `freegame` are now skipped before attempting a reveal POST — saves ~1s per entry that would otherwise be a wasted round-trip. The summary shows a "Pre-skipped (vendor/keyless)" count with a per-category breakdown. (Closes #4)
+- **Freegame entries surfaced in skip summary.** When freegame entries are pre-skipped, the summary lists each one with its `machine_name` for future investigation. (Closes #5)
+- **Copy-pasteable re-run command for Choice items.** When unclaimed Choice entries are detected, the summary prints the exact `humble-bundle-keys --claim-choice --membership-only <slug>` command needed to claim them. Derives the membership slug automatically from the order's product metadata. (Closes #6)
+- `skipped_structural` and `skipped_structural_tpks` fields on `ExtractStats` for tracking pre-skipped entries.
+- 8 new tests: 4 for retry logic (`test_reveal_retry.py`), 4 for cache counter accuracy (`test_cache_counters.py`).
+
+### Changed
+
+- `OrderCache.get()` accepts a `count_stats` keyword argument (default `True`). Internal callers pass `False` to avoid inflating user-visible counters.
 
 ## [0.4.0] — Public release
 
