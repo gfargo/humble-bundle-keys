@@ -10,7 +10,7 @@ This doc explains how the pieces fit together and why the design ended up the wa
 
 ```
                         ┌─ ApiScraper ─────────────────────┐
-GET /api/v1/user/order ─┤  list 195 gamekeys               │
+GET /api/v1/user/order ─┤  list every gamekey              │
                         │  fetch each order's tpkd_dict     │── rows ──┐
 (default)               │  POST /humbler/redeemkey for      │          │
                         │    each unrevealed tpk            │          │
@@ -38,12 +38,12 @@ GET /api/v1/user/order ─┤  list 195 gamekeys               │
 Lives in `humble_bundle_keys/api.py`. Hits Humble's private JSON API:
 
 ```
-GET  /api/v1/user/order              → list of 195 gamekeys
+GET  /api/v1/user/order              → list of all your gamekeys
 GET  /api/v1/order/<gamekey>?all_tpkds=true → full tpkd_dict per order
 POST /humbler/redeemkey              → reveal a single key
 ```
 
-Each `tpkd_dict.all_tpks[]` entry is one game. Pre-allocated keys live in `redeemed_key_val`; unrevealed entries have `redeemed_key_val: null` and require a POST to `/humbler/redeemkey` to unmask. This handles ~95% of a typical library.
+Each `tpkd_dict.all_tpks[]` entry is one game. Pre-allocated keys live in `redeemed_key_val`; unrevealed entries have `redeemed_key_val: null` and require a POST to `/humbler/redeemkey` to unmask. This handles the bulk of a typical library — bundle keys, legacy Humble Monthly content, and Humble Choice keys that have already been allocated.
 
 ### Mode 2: `ChoiceClaimer` (`--claim-choice`)
 
@@ -96,7 +96,7 @@ See `humble_bundle_keys/_browser_fetch.py` for the implementation.
 
 ### Order cache
 
-`humble_bundle_keys/_orders_cache.py` — per-gamekey JSON cache at `~/.humble-bundle-keys/orders-cache/<gamekey>.json` with a 6-hour TTL by default. Cuts a warm 195-order run from ~2 minutes to ~10 seconds. Auto-invalidates when a successful reveal mutates an order. Override with `--cache-ttl-h N` or bypass with `--no-cache`.
+`humble_bundle_keys/_orders_cache.py` — per-gamekey JSON cache at `~/.humble-bundle-keys/orders-cache/<gamekey>.json` with a 6-hour TTL by default. Drastically cuts subsequent run time for accounts with large libraries (since the order-detail GETs dominate). Auto-invalidates when a successful reveal mutates an order. Override with `--cache-ttl-h N` or bypass with `--no-cache`.
 
 ### CSV merge identity
 
@@ -117,17 +117,17 @@ Outputs a `safe-to-share.zip` users can attach to GitHub issues. The 14 sanitize
 
 ## Why three separate modes instead of one unified scraper
 
-Tried unifying. Doesn't work cleanly because the three flows have genuinely different cost / risk / coverage profiles:
+The three flows have genuinely different cost / risk / coverage profiles, so collapsing them into one mode would force a bad tradeoff:
 
 | | API reveal | Choice claim API | Browser claim |
 |---|---|---|---|
 | Speed | Fast (POST per game, ~1s each) | Fast (2 POSTs per game) | Slow (5–15s per game, full DOM) |
 | Visibility | Background | Background | Visible browser window |
-| Coverage | ~95% of typical library | Modern Choice months only | Everything API can't see |
-| Failure mode | Silent no-key (we now categorize) | Server-side error (Road 96 case) | Modal/timing issues |
+| Coverage | Most of a typical library | Modern Choice months only | Everything API can't see |
+| Failure mode | Silent no-key (categorized in summary) | Server-side rejection on stuck entries | Modal/timing edge cases |
 | Side effects | Reveals key + marks claimed on Humble | Same | Same + visible UI changes |
 
-The user can mix: a typical full-coverage run is `humble-bundle-keys --browser-claim --merge -v`, which runs all three sequentially.
+The user can mix them: a typical full-coverage run is `humble-bundle-keys --browser-claim --merge -v`, which runs all three sequentially.
 
 ---
 

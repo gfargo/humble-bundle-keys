@@ -20,10 +20,11 @@ codebase only handles one of them.
 | **A. Standard Redeem** | `/home/keys` — green "Redeem" button next to a row | `POST /humbler/redeemkey` (form-encoded with `keytype`, `key`, `keyindex`) | ✅ Implemented in `humble_bundle_keys/api.py::_reveal` |
 | **B. Choice "Get Game on Steam"** | `/membership/<month-slug>` — card grid → modal → blue "GET GAME ON STEAM" button → 3–10 s async → modal updates with key | **UNKNOWN** | ❌ Not implemented; subject of this spec |
 
-The first dry run on a real account (Griffen, 2026-05-04) returned **589
-rows from 195 orders, 422 already-revealed keys, 0 newly revealed**. The
-167-key gap (589 − 422 = 167) is presumed to be Choice subscription content
-sitting in Flow B and not reachable via Flow A.
+The first real-account dry run during development showed a typical
+Choice subscriber's library has a meaningful gap between revealed keys
+and total tpks: keys sitting in Flow B that the API path can't reach
+because they require the two-step `/humbler/choosecontent` +
+`/humbler/redeemkey` sequence rather than a direct redeemkey call.
 
 The desired behaviour from `humble-bundle-keys` is the same as for Flow A: trigger
 the claim so the key materialises on Humble's side, then capture it into
@@ -73,8 +74,7 @@ When it completes the same modal updates in place:
 * The card art gets a "CLAIMED" pill in the top-left corner
 * The button stack is replaced by:
   * Section header **"HERE'S YOUR KEY"**
-  * A monospace pill with the actual Steam key (example seen:
-    `AAAAA-BBBBB-CCCCC`)
+  * A monospace pill with the actual Steam key (e.g. `XXXXX-XXXXX-XXXXX`)
   * A **REDEEM** button — which we believe opens Steam's URL handler /
     deep-link to redeem on Steam itself (this is the bit we *don't* automate)
 
@@ -202,7 +202,7 @@ GET /api/v1/orders?all_tpkds=true&gamekeys=<gk1>&gamekeys=<gk2>&...
 
 …with up to 40 gamekeys per request. So the SPA fetches the user's
 entire library in roughly 5 calls regardless of size, while our current
-`ApiScraper` does one call per order (195 calls in Griffen's library).
+`ApiScraper` does one call per order (one per gamekey, can be hundreds for long-time subscribers).
 **This is a future performance optimization, not blocking Choice claim
 work.** Tracked separately.
 
@@ -310,8 +310,8 @@ explicitly the first time).
 ## Changelog of this document
 
 * **2026-05-04** — Initial draft after first real-account dry run.
-  589 rows captured, 0 newly revealed. Confirmed Flow B exists, captured
-  screenshots of the modal in pre/post-claim states.
+  Confirmed Flow B exists; captured screenshots of the modal in
+  pre/post-claim states.
 * **2026-05-04 (later)** — Live capture via `humble-bundle-keys diagnose
   --membership-page march-2026`. Got the wire-level contract for both
   POSTs (choosecontent + redeemkey). Discovered the batched `/api/v1/orders`

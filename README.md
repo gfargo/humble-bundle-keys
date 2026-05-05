@@ -18,7 +18,7 @@ It does NOT log into Steam. It stays inside humblebundle.com so the security mod
 ## What it does
 
 1. **Logs you in once** in a real Chromium window (so 2FA emails work normally) and saves the session to `~/.humble-bundle-keys/storage_state.json`. Subsequent runs reuse it silently.
-2. **Walks all 195+ orders** via Humble's private JSON API and extracts metadata for every game, key, bundle, deadline, and OS support entry.
+2. **Walks every order in your library** via Humble's private JSON API and extracts metadata for every game, key, bundle, deadline, and OS support entry.
 3. **Reveals already-allocated keys** by clicking Humble's "Redeem" button on each unrevealed entry — same operation a human would perform.
 4. **Claims Humble Choice subscription games** by driving the `/membership/<month>` pages, clicking each unclaimed game card, hitting "GET GAME ON STEAM", waiting for Humble's backend to allocate a key, and extracting it.
 5. **Writes everything to `humble-bundle-keys.csv`** with one row per key, structured for sorting/filtering/pasting.
@@ -68,7 +68,7 @@ The tool has three distinct extraction modes that cover different parts of Humbl
 
 ### 1. Default extract + reveal (`humble-bundle-keys`)
 
-The basic flow. Hits Humble's private JSON API to list all 195+ orders, pulls metadata for every game in your library, and POSTs to `/humbler/redeemkey` for any unrevealed-but-pre-allocated entry to unmask the key. Fast (most of the work is GETs), runs unattended after first login.
+The basic flow. Hits Humble's private JSON API to list all your orders, pulls metadata for every game in your library, and POSTs to `/humbler/redeemkey` for any unrevealed-but-pre-allocated entry to unmask the key. Fast (most of the work is GETs), runs unattended after first login.
 
 Catches: regular bundle keys, legacy Humble Monthly subscription games you'd previously selected but never clicked Redeem on, Humble Choice keys that were already revealed.
 
@@ -212,7 +212,7 @@ Three modes, one CSV:
 
 ```
                           ┌─ ApiScraper ─────────────────────┐
-GET /api/v1/user/order ──▶│  list 195 gamekeys               │
+GET /api/v1/user/order ──▶│  list every gamekey              │
                           │  fetch each order's tpkd_dict     │──▶ rows
                           │  POST /humbler/redeemkey for      │
                           │    each unrevealed tpk            │

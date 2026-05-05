@@ -79,13 +79,10 @@ Anything that doesn't match a known pattern. If this comes up, paste the line in
 
 ## The bigger picture
 
-Of a typical 150-key holdout list, the breakdown tends to look something like:
+The categories above split roughly into two halves:
 
-- ~50% `monthly` — most claimable via standard reveal
-- ~25% `softwarebundle` / `voucher` — structurally manual
-- ~15% `keyless` — there's no key to extract
-- ~5% `freegame` — recoverable in principle, not yet implemented
-- ~3% `choice` — fixable via `--browser-claim`
-- ~2% `other` / `bundle` — investigate per-case
+**Auto-claimable** (`choice`, `monthly`, most `bundle`) — the majority of any account's library. These are standard Steam-shaped keys delivered through Humble's own redemption flow and the tool can extract them all.
 
-So the practical ceiling for a typical user is ~95–97% of their library auto-extractable. The remaining few percent represent the structural diversity of "key" delivery on Humble's side, not a tool limitation.
+**Structurally manual** (`keyless`, `softwarebundle`, `voucher`, some `freegame`) — these aren't bugs in the tool; they're entries that don't *have* a Steam-shaped key to extract. Epic keyless games go directly to your Epic library with no key involved; software bundles route through per-vendor activation pages; vouchers are URLs not keys. No automated tool can change that without doing fundamentally different work per category.
+
+The practical takeaway: after a complete `humble-bundle-keys --browser-claim` run, you'll see most of your library in the CSV. The handful of holdouts in the summary will be categorized so you know which (if any) need follow-up, vs. which are just inherent to how Humble distributes that specific item.
