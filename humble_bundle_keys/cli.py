@@ -448,6 +448,41 @@ def _print_summary(stats, csv_path: Path, n_written: int) -> None:
             for cat, n in cats.most_common():
                 hint = advice.get(cat, "")
                 console.print(f"  [yellow]• {cat}: {n}[/]  [dim]— {hint}[/]")
+
+            # Print exact re-run command for choice items
+            if "choice" in cats:
+                from humble_bundle_keys.browser_choice import derive_membership_slug
+
+                choice_slugs: set[str] = set()
+                for _title, _tpk_mn, order_mn in details:
+                    if categorize_keytype(_tpk_mn) == "choice":
+                        slug = derive_membership_slug({"machine_name": order_mn})
+                        if slug:
+                            choice_slugs.add(slug)
+
+                console.print("\n[green]To claim these, re-run:[/]")
+                if len(choice_slugs) == 1:
+                    slug = next(iter(choice_slugs))
+                    console.print(
+                        f"  [bold]humble-bundle-keys --claim-choice "
+                        f"--membership-only {slug}[/]"
+                    )
+                elif len(choice_slugs) <= 5:
+                    # Show per-slug commands
+                    console.print(
+                        "  [bold]humble-bundle-keys --claim-choice[/]"
+                    )
+                    console.print("\n[dim]Or target specific months:[/]")
+                    for slug in sorted(choice_slugs):
+                        console.print(
+                            f"  [dim]humble-bundle-keys --claim-choice "
+                            f"--membership-only {slug}[/]"
+                        )
+                else:
+                    # Too many slugs — just show the general command
+                    console.print(
+                        "  [bold]humble-bundle-keys --claim-choice[/]"
+                    )
         n_show = min(10, len(details))
         if n_show:
             console.print(
