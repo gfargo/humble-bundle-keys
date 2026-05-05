@@ -165,6 +165,7 @@ class BrowserClaimAttempt:
     title: str
     success: bool = False
     already_claimed: bool = False
+    key_exhausted: bool = False
     key: str = ""
     error: str = ""
 
@@ -468,6 +469,16 @@ class BrowserChoiceClaimer:
                 key_text = ""
             if key_text:
                 break
+            # Check for "no keys available" or similar exhaustion messages.
+            # Humble shows these when the key pool for a game is depleted.
+            # Detecting early saves the remaining timeout (~20-25s).
+            exhausted_msg = self._check_key_exhausted(modal)
+            if exhausted_msg:
+                attempt.error = f"key exhausted: {exhausted_msg}"
+                attempt.key_exhausted = True
+                log.warning("    Key pool exhausted: %s", exhausted_msg)
+                self._close_modal(page)
+                return
             poll_count += 1
             if poll_count % 5 == 0:
                 # Show progress every 5 s so the user knows we're still waiting.
@@ -551,6 +562,32 @@ class BrowserChoiceClaimer:
                         return m.group(0)
             except Exception:
                 continue
+        return ""
+
+    def _check_key_exhausted(self, modal: Locator) -> str:
+        """Check if the modal shows a 'no keys available' message.
+
+        Humble displays messages like "There are no more keys available for
+        this title at this time" when the key pool is depleted. Detecting
+        this early saves the remaining 20-25s of the timeout.
+
+        Returns the matched message text if exhausted, empty string otherwise.
+        """
+        exhaustion_phrases = (
+            "no more keys available",
+            "no keys available",
+            "key unavailable",
+            "currently unavailable",
+            "out of stock",
+            "no longer available",
+        )
+        try:
+            text = modal.inner_text(timeout=500).lower()
+            for phrase in exhaustion_phrases:
+                if phrase in text:
+                    return phrase
+        except Exception:
+            pass
         return ""
 
     def _close_modal(self, page: Page) -> None:

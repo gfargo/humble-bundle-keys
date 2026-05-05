@@ -102,7 +102,7 @@ Comprehensive documentation is available on the **[GitHub Wiki](https://github.c
 | --- | --- |
 | `--dry-run` | Read-only. Walk everything, don't reveal or claim. |
 | `--browser-claim` | Drive membership pages to claim Choice games. |
-| `--max-claims N` | Hard cap on claims per run. Default 25. |
+| `--max-claims N` | Hard cap on claims per run. Default 100. |
 | `--merge` | Merge with existing CSV instead of overwriting. |
 | `-v` / `-vv` | Bump console verbosity. |
 | `-y` / `--yes` | Skip confirmation prompts. |
