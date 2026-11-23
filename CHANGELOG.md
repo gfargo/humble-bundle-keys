@@ -5,6 +5,17 @@ All notable changes to `humble-bundle-keys` will be documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`nextjs_choice` module for Humble's Next.js redesign (November 2026).** `/home/library` replaces the old `/home/keys` table and `/api/v1/user/order` now answers 404, so the DOM and API scrapers are both dead on the new site. The new module reads the `filterUserLibrary` server-action response for the Purchased tab and each item's React flight payload (`redemptionData.keyFormatted`) for the key, clicking a reveal control for unrevealed keys.
+- **`--browser-claim --membership-only <month>` falls back to the Next.js path** when the old order list is unavailable. The guard that demanded the API scraper now only applies when no month is given.
+
+### Fixed
+
+- **Login detection on the redesigned site.** The old check required `/home/keys` in the URL, which now redirects to `/home/library`, so every valid session looked signed out ("Timed out waiting for login"). A reader on `/home/library` now counts as signed in; a redirect to `auth.humblebundle.com` counts as signed out.
+
 ## [0.6.0] — 2026-05-05
 
 ### Fixed

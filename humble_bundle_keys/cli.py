@@ -713,14 +713,16 @@ def main(argv: list[str] | None = None) -> int:
             # Catches games the API can't see (legacy "pick N of M" months
             # where the menu of available games never appears in tpks).
             if args.browser_claim:
-                if api is None:
+                if api is None and not args.membership_only:
                     console.print(
                         "[red]--browser-claim requires the API scraper "
-                        "(uses its order list to derive membership slugs). "
-                        "Re-run with --scraper api or --scraper auto.[/]"
+                        "(uses its order list to derive membership slugs), or an "
+                        "explicit --membership-only month.[/]"
                     )
                 else:
-                    extra_rows = _run_browser_claim(context, api.orders, args)
+                    # With --membership-only the new Next.js library pages are
+                    # enough; the old order list is only a shortcut.
+                    extra_rows = _run_browser_claim(context, api.orders if api else [], args)
                     rows.extend(extra_rows)
                     stats.keys_revealed += len(extra_rows)
         finally:
@@ -737,6 +739,53 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
+
+def _run_nextjs_claim(context, args) -> list:
+    """Claim one Choice month on the redesigned Next.js site."""
+    from humble_bundle_keys.nextjs_choice import claim_month, slug_to_display
+
+    slug = args.membership_only.strip("/")
+    display = slug_to_display(slug)
+    if display is None:
+        console.print(
+            f"[red]--membership-only {slug!r} is not a month slug like 'october-2026'.[/]"
+        )
+        return []
+
+    console.print(
+        f"\n[bold]--browser-claim (Next.js site):[/] month [cyan]{display}[/], "
+        f"up to [cyan]{args.max_claims}[/] item(s), "
+        f"--claim-delay-s={args.claim_delay_s}."
+    )
+    if not args.dry_run:
+        console.print(
+            "[yellow]This MUTATES STATE on Humble's side — revealing a key consumes "
+            "its claim slot for that game.[/]"
+        )
+    if not args.yes:
+        try:
+            answer = input("Type 'yes' to proceed: ").strip().lower()
+        except EOFError:
+            answer = ""
+        if answer != "yes":
+            console.print("[yellow]Aborted by user.[/]")
+            return []
+
+    rows, revealed = claim_month(
+        context,
+        slug,
+        dry_run=args.dry_run,
+        max_claims=args.max_claims,
+        delay_s=args.claim_delay_s,
+    )
+    with_keys = sum(1 for row in rows if row.key)
+    console.print(
+        f"[green]Next.js claim complete:[/] {len(rows)} item(s), "
+        f"{with_keys} key(s) present, {revealed} newly revealed."
+    )
+    return rows
+
+
 def _run_browser_claim(context, orders, args) -> list:
     """Drive each /membership/<slug> page in the actual browser."""
     from humble_bundle_keys.browser_choice import derive_membership_slug
@@ -751,6 +800,12 @@ def _run_browser_claim(context, orders, args) -> list:
         if s
     ]
     candidate_slugs = sorted(set(candidate_slugs))
+
+    # Humble removed the order API in November 2026, so a scheduled run has no
+    # orders to derive slugs from. Drive the new library pages directly.
+    if not candidate_slugs and args.membership_only:
+        return _run_nextjs_claim(context, args)
+
     if args.membership_only:
         only = args.membership_only.strip("/")
         if only not in candidate_slugs:
