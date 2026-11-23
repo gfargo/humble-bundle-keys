@@ -151,7 +151,9 @@ def _flight_rows(payload: str) -> list[Any]:
     return values
 
 
-def list_month_items(context: BrowserContext, slug: str, page: Page | None = None) -> list[MonthItem]:
+def list_month_items(
+    context: BrowserContext, slug: str, page: Page | None = None
+) -> list[MonthItem]:
     """Return the purchased items of one Choice month.
 
     The Purchased tab loads its list through the filterUserLibrary server
@@ -254,7 +256,9 @@ def read_item_state(page: Page, url: str) -> ItemState | None:
     if not payload:
         return None
 
-    container = _walk(_flight_rows(payload), lambda value: isinstance(value.get("entitlements"), dict))
+    container = _walk(
+        _flight_rows(payload), lambda value: isinstance(value.get("entitlements"), dict)
+    )
     if container is None:
         return None
 

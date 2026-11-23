@@ -747,7 +747,9 @@ def _run_nextjs_claim(context, args) -> list:
     slug = args.membership_only.strip("/")
     display = slug_to_display(slug)
     if display is None:
-        console.print(f"[red]--membership-only {slug!r} is not a month slug like 'october-2026'.[/]")
+        console.print(
+            f"[red]--membership-only {slug!r} is not a month slug like 'october-2026'.[/]"
+        )
         return []
 
     console.print(
