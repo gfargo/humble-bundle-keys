@@ -104,8 +104,16 @@ def _is_authenticated(page: Page) -> bool:
         page.goto(KEYS_URL, wait_until="domcontentloaded", timeout=AUTH_CHECK_TIMEOUT_MS)
     except PlaywrightTimeoutError:
         return False
+    # The 2026 Next.js site redirects /home/keys to /home/library; a signed-out
+    # reader ends up on auth.humblebundle.com instead.
+    try:
+        page.wait_for_timeout(2_000)
+    except Exception:
+        pass
     final_url = page.url or ""
-    return "/home/keys" in final_url and "/login" not in final_url
+    if "auth.humblebundle.com" in final_url or "/login" in final_url:
+        return False
+    return "/home/library" in final_url or "/home/keys" in final_url
 
 
 def _interactive_login(playwright: Playwright, state_path: Path) -> None:
